@@ -1,0 +1,166 @@
+meta:
+  spec_version: "1.0"
+  scenario_id: "access_incident_dev_001"
+  suite: "CIMO-Dyn"
+  motif: "AccessIncident"
+  split: "dev"
+  seed: 501
+
+imports:
+  - ../catalogs/units.yaml
+  - ../catalogs/objects.yaml
+  - ../catalogs/terrains.yaml
+  - ../catalogs/transitions.yaml
+  - ../catalogs/team_modes.yaml
+  - ../catalogs/target_profiles.yaml
+
+catalogs: {}
+
+# -----------------------------------------------------------------------
+# AccessIncident dev:
+#   A rubble blockage seals off the substation entrance.
+#   service_manipulator must clear the blockage (clear_blockage action),
+#   then inspection_rover can traverse and assess the substation target.
+#
+#   [base] --road_lane--> [junction] --rubble_passage--> [substation_door]
+#                                                              |
+#                                                         room_access
+#                                                              |
+#                                                        [substation]
+#
+#   Disturbance: e_junction_door blocked from tick 0 until service_manipulator clears it.
+# -----------------------------------------------------------------------
+world:
+  nodes:
+    - node_id: "base"
+      label: "Operations Base"
+      environment_class: outdoor
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: true
+
+    - node_id: "junction"
+      label: "Road Junction"
+      environment_class: outdoor
+      x: 25.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "substation_door"
+      label: "Substation Entrance"
+      environment_class: interface
+      x: 40.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "substation"
+      label: "Power Substation"
+      environment_class: indoor
+      x: 55.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+  edges:
+    - edge_id: "e_base_junction"
+      source: "base"
+      target: "junction"
+      terrain_type: road_lane
+      distance: 25.0
+      bidirectional: true
+
+    - edge_id: "e_junction_door"
+      source: "junction"
+      target: "substation_door"
+      terrain_type: rubble_passage
+      distance: 15.0
+      bidirectional: true
+
+    - edge_id: "e_door_substation"
+      source: "substation_door"
+      target: "substation"
+      terrain_type: room_access
+      distance: 15.0
+      transition_type: doorway
+      bidirectional: true
+
+initial_state:
+  units:
+    - unit_id: "manipulator_01"
+      unit_type: service_manipulator
+      location: "base"
+
+    - unit_id: "rover_01"
+      unit_type: inspection_rover
+      location: "base"
+
+  objects:
+    - object_id: "toolkit_01"
+      object_type: toolkit
+      location: "base"
+
+  targets:
+    - target_id: "tgt_substation"
+      target_type: assessment
+      location: "substation"
+      metadata:
+        description: "Power substation assessment target"
+
+    - target_id: "tgt_access"
+      target_type: access
+      location: "substation_door"
+      metadata:
+        description: "Blocked entrance access target"
+
+workload:
+  missions:
+    - mission_id: "m_clear_access"
+      family: enable_access
+      priority: high
+      release_tick: 0
+      deadline_tick: 300
+      connectivity_requirement: none
+      risk_budget: 6.0
+      assigned_units:
+        - "manipulator_01"
+      params:
+        target_id: "tgt_access"
+        target_edge: "e_junction_door"
+
+    - mission_id: "m_assess_substation"
+      family: assess_target
+      priority: high
+      release_tick: 0
+      deadline_tick: 500
+      connectivity_requirement: none
+      risk_budget: 5.0
+      assigned_units:
+        - "rover_01"
+      dependencies:
+        - type: finish_before_start
+          from: "m_clear_access"
+      params:
+        target_id: "tgt_substation"
+        assessment_mode: inspect
+
+# Rubble blocks the passage from tick 0
+disturbances:
+  - disturbance_id: "d_rubble_block"
+    trigger_tick: 0
+    resolve_tick: null
+    affected_edges:
+      - "e_junction_door"
+      - "e_junction_door_rev"
+    affected_nodes: []
+    effect: block
+    magnitude: 1.0
+
+benchmark:
+  max_ticks: 600
+  record_interval: 10
+  reward_shaping: none
+
+generators: {}

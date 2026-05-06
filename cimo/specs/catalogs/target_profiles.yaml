@@ -1,0 +1,34 @@
+# Target profile catalog for CIMO v1.
+# Defines standard target configurations used in scenario templates.
+
+target_profiles:
+  default_assessment:
+    target_type: assessment
+    required_mode: inspected
+    min_quality: 0.5
+
+  strict_assessment:
+    target_type: assessment
+    required_mode: verified
+    min_quality: 0.8
+
+  deep_assessment:
+    target_type: assessment
+    required_mode: diagnosed
+    min_quality: 0.6
+
+  default_access:
+    target_type: access
+    initially_operable: false
+
+  default_service:
+    target_type: service
+    repair_work_units: 1.0
+
+  sensing_coverage:
+    target_type: coverage
+    coverage_mode: sensing
+
+  comm_coverage:
+    target_type: coverage
+    coverage_mode: communication

@@ -1,0 +1,155 @@
+meta:
+  spec_version: "1.0"
+  scenario_id: "crossing_team_train_001"
+  suite: "CIMO-Core"
+  motif: "CrossingTeam"
+  split: "train"
+  seed: 7
+
+imports:
+  - ../catalogs/units.yaml
+  - ../catalogs/objects.yaml
+  - ../catalogs/terrains.yaml
+  - ../catalogs/transitions.yaml
+  - ../catalogs/team_modes.yaml
+  - ../catalogs/target_profiles.yaml
+
+catalogs: {}
+
+# -----------------------------------------------------------------------
+# World graph
+#
+#   [bank_west] --river_gap--> [bank_east]   (air: pass; ground: deny)
+#   [bank_west] --road_lane--> [bridge_south] --road_lane--> [bank_east]
+#   [bank_east] --indoor_corridor--> [warehouse]
+#
+# Mission: inspection_rover must reach [warehouse]
+#   Direct path via river_gap requires airlift with aerial_scout.
+#   Alternate path via bridge_south is longer (ground passable).
+# -----------------------------------------------------------------------
+world:
+  nodes:
+    - node_id: "bank_west"
+      label: "West River Bank"
+      environment_class: outdoor
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: true
+
+    - node_id: "bank_east"
+      label: "East River Bank"
+      environment_class: outdoor
+      x: 30.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "bridge_south"
+      label: "South Bridge"
+      environment_class: outdoor
+      x: 15.0
+      y: -20.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "warehouse"
+      label: "East Warehouse"
+      environment_class: indoor
+      x: 45.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+  edges:
+    - edge_id: "e_river"
+      source: "bank_west"
+      target: "bank_east"
+      terrain_type: river_gap
+      distance: 30.0
+      bidirectional: true
+
+    - edge_id: "e_west_bridge"
+      source: "bank_west"
+      target: "bridge_south"
+      terrain_type: road_lane
+      distance: 25.0
+      bidirectional: true
+
+    - edge_id: "e_bridge_east"
+      source: "bridge_south"
+      target: "bank_east"
+      terrain_type: road_lane
+      distance: 25.0
+      bidirectional: true
+
+    - edge_id: "e_east_warehouse"
+      source: "bank_east"
+      target: "warehouse"
+      terrain_type: indoor_corridor
+      distance: 15.0
+      transition_type: loading_dock
+      bidirectional: true
+
+initial_state:
+  units:
+    - unit_id: "scout_01"
+      unit_type: aerial_scout
+      location: "bank_west"
+
+    - unit_id: "rover_01"
+      unit_type: inspection_rover
+      location: "bank_west"
+
+  objects:
+    - object_id: "toolkit_01"
+      object_type: toolkit
+      location: "bank_west"
+
+  targets:
+    - target_id: "tgt_warehouse"
+      target_type: assessment
+      location: "warehouse"
+      metadata:
+        description: "Warehouse inspection target"
+
+workload:
+  missions:
+    - mission_id: "m_relocate_rover"
+      family: relocate_unit
+      priority: high
+      release_tick: 0
+      deadline_tick: 600
+      connectivity_requirement: none
+      risk_budget: 8.0
+      assigned_units:
+        - "scout_01"
+        - "rover_01"
+      params:
+        unit_id: "rover_01"
+        destination_node: "warehouse"
+
+    - mission_id: "m_inspect_warehouse"
+      family: assess_target
+      priority: medium
+      release_tick: 0
+      deadline_tick: 700
+      connectivity_requirement: none
+      risk_budget: 4.0
+      assigned_units:
+        - "rover_01"
+      dependencies:
+        - type: finish_before_start
+          from: "m_relocate_rover"
+      params:
+        target_id: "tgt_warehouse"
+        assessment_mode: inspect
+
+disturbances: []
+
+benchmark:
+  max_ticks: 800
+  record_interval: 10
+  reward_shaping: none
+
+generators: {}

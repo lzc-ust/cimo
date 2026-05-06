@@ -1,0 +1,114 @@
+meta:
+  spec_version: "1.0"
+  scenario_id: "recovery_run_dev_001"
+  suite: "CIMO-Dyn"
+  motif: "RecoveryRun"
+  split: "dev"
+  seed: 601
+
+imports:
+  - ../catalogs/units.yaml
+  - ../catalogs/objects.yaml
+  - ../catalogs/terrains.yaml
+  - ../catalogs/transitions.yaml
+  - ../catalogs/team_modes.yaml
+  - ../catalogs/target_profiles.yaml
+
+catalogs: {}
+
+# -----------------------------------------------------------------------
+# RecoveryRun dev:
+#   inspection_rover is stranded at field_site with low energy.
+#   heavy_tugger must reach field_site, attach (tow mode),
+#   and tow the rover back to base (recharge point).
+#
+#   [base] --road_lane--> [crossroad] --open_yard--> [field_site]
+#
+#   heavy_tugger starts at base; rover starts at field_site (energy=10).
+# -----------------------------------------------------------------------
+world:
+  nodes:
+    - node_id: "base"
+      label: "Recovery Base"
+      environment_class: outdoor
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: true
+
+    - node_id: "crossroad"
+      label: "Crossroad"
+      environment_class: outdoor
+      x: 30.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "field_site"
+      label: "Field Site"
+      environment_class: outdoor
+      x: 60.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+  edges:
+    - edge_id: "e_base_cross"
+      source: "base"
+      target: "crossroad"
+      terrain_type: road_lane
+      distance: 30.0
+      bidirectional: true
+
+    - edge_id: "e_cross_field"
+      source: "crossroad"
+      target: "field_site"
+      terrain_type: open_yard
+      distance: 30.0
+      bidirectional: true
+
+initial_state:
+  units:
+    - unit_id: "tugger_01"
+      unit_type: heavy_tugger
+      location: "base"
+
+    - unit_id: "rover_01"
+      unit_type: inspection_rover
+      location: "field_site"
+      energy: 10.0
+
+  objects: []
+
+  targets:
+    - target_id: "tgt_rover_recovery"
+      target_type: assessment
+      location: "base"
+      metadata:
+        description: "Recovery destination for stranded rover"
+
+workload:
+  missions:
+    - mission_id: "m_recover_rover"
+      family: recover_unit
+      priority: high
+      release_tick: 0
+      deadline_tick: 500
+      connectivity_requirement: none
+      risk_budget: 6.0
+      assigned_units:
+        - "tugger_01"
+        - "rover_01"
+      params:
+        unit_id: "rover_01"
+        destination_node: "base"
+        team_mode: tow
+
+disturbances: []
+
+benchmark:
+  max_ticks: 600
+  record_interval: 10
+  reward_shaping: none
+
+generators: {}

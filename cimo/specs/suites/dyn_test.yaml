@@ -1,0 +1,6 @@
+# CIMO-Dyn test suite definition
+suite: CIMO-Dyn
+split: test
+scenarios:
+  - scenarios/access_incident_test_001.yaml
+  - scenarios/recovery_run_test_001.yaml

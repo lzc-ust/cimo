@@ -1,0 +1,6 @@
+# CIMO-Core test suite definition
+suite: CIMO-Core
+split: test
+scenarios:
+  - scenarios/campus_transfer_test_001.yaml
+  - scenarios/crossing_team_test_001.yaml

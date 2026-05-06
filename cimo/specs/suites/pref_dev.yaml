@@ -1,0 +1,6 @@
+# CIMO-Pref dev suite definition
+suite: CIMO-Pref
+split: dev
+scenarios:
+  - scenarios/shadow_service_dev_001.yaml
+  - scenarios/maintain_coverage_dev_001.yaml

@@ -1,0 +1,6 @@
+# CIMO-Core dev suite definition
+suite: CIMO-Core
+split: dev
+scenarios:
+  - scenarios/campus_transfer_dev_001.yaml
+  - scenarios/crossing_team_dev_001.yaml

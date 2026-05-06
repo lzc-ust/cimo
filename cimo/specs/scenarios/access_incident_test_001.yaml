@@ -1,0 +1,205 @@
+meta:
+  spec_version: "1.0"
+  scenario_id: "access_incident_test_001"
+  suite: "CIMO-Dyn"
+  motif: "AccessIncident"
+  split: "test"
+  seed: 701
+
+imports:
+  - ../catalogs/units.yaml
+  - ../catalogs/objects.yaml
+  - ../catalogs/terrains.yaml
+  - ../catalogs/transitions.yaml
+  - ../catalogs/team_modes.yaml
+  - ../catalogs/target_profiles.yaml
+
+catalogs: {}
+
+# -----------------------------------------------------------------------
+# AccessIncident test:
+#   Two sequential blockages. First rubble blocks junction_door (tick 0).
+#   After clearing, a second cave_tunnel collapse blocks inner_corridor
+#   at tick 150, requiring a second repair cycle.
+# -----------------------------------------------------------------------
+world:
+  nodes:
+    - node_id: "base"
+      label: "Operations Base"
+      environment_class: outdoor
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: true
+
+    - node_id: "junction"
+      label: "Road Junction"
+      environment_class: outdoor
+      x: 25.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "substation_door"
+      label: "Substation Entrance"
+      environment_class: interface
+      x: 40.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "inner_corridor"
+      label: "Inner Corridor"
+      environment_class: indoor
+      x: 55.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "substation"
+      label: "Power Substation"
+      environment_class: indoor
+      x: 70.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+  edges:
+    - edge_id: "e_base_junction"
+      source: "base"
+      target: "junction"
+      terrain_type: road_lane
+      distance: 25.0
+      bidirectional: true
+
+    - edge_id: "e_junction_door"
+      source: "junction"
+      target: "substation_door"
+      terrain_type: rubble_passage
+      distance: 15.0
+      bidirectional: true
+
+    - edge_id: "e_door_corridor"
+      source: "substation_door"
+      target: "inner_corridor"
+      terrain_type: indoor_corridor
+      distance: 15.0
+      transition_type: doorway
+      bidirectional: true
+
+    - edge_id: "e_corridor_substation"
+      source: "inner_corridor"
+      target: "substation"
+      terrain_type: room_access
+      distance: 15.0
+      transition_type: doorway
+      bidirectional: true
+
+initial_state:
+  units:
+    - unit_id: "manipulator_01"
+      unit_type: service_manipulator
+      location: "base"
+
+    - unit_id: "rover_01"
+      unit_type: inspection_rover
+      location: "base"
+
+  objects:
+    - object_id: "toolkit_01"
+      object_type: toolkit
+      location: "base"
+
+  targets:
+    - target_id: "tgt_substation"
+      target_type: assessment
+      location: "substation"
+      metadata:
+        description: "Power substation assessment target"
+
+    - target_id: "tgt_access_outer"
+      target_type: access
+      location: "substation_door"
+      metadata:
+        description: "Outer blocked entrance"
+
+    - target_id: "tgt_access_inner"
+      target_type: access
+      location: "inner_corridor"
+      metadata:
+        description: "Inner blocked corridor"
+
+workload:
+  missions:
+    - mission_id: "m_clear_outer"
+      family: enable_access
+      priority: high
+      release_tick: 0
+      deadline_tick: 200
+      connectivity_requirement: none
+      risk_budget: 6.0
+      assigned_units:
+        - "manipulator_01"
+      params:
+        target_id: "tgt_access_outer"
+        target_edge: "e_junction_door"
+
+    - mission_id: "m_clear_inner"
+      family: enable_access
+      priority: high
+      release_tick: 140
+      deadline_tick: 400
+      connectivity_requirement: none
+      risk_budget: 6.0
+      assigned_units:
+        - "manipulator_01"
+      dependencies:
+        - type: finish_before_start
+          from: "m_clear_outer"
+      params:
+        target_id: "tgt_access_inner"
+        target_edge: "e_door_corridor"
+
+    - mission_id: "m_assess_substation"
+      family: assess_target
+      priority: high
+      release_tick: 0
+      deadline_tick: 600
+      connectivity_requirement: none
+      risk_budget: 5.0
+      assigned_units:
+        - "rover_01"
+      dependencies:
+        - type: finish_before_start
+          from: "m_clear_inner"
+      params:
+        target_id: "tgt_substation"
+        assessment_mode: diagnose
+
+disturbances:
+  - disturbance_id: "d_rubble_outer"
+    trigger_tick: 0
+    resolve_tick: null
+    affected_edges:
+      - "e_junction_door"
+      - "e_junction_door_rev"
+    affected_nodes: []
+    effect: block
+    magnitude: 1.0
+
+  - disturbance_id: "d_corridor_collapse"
+    trigger_tick: 150
+    resolve_tick: null
+    affected_edges:
+      - "e_door_corridor"
+      - "e_door_corridor_rev"
+    affected_nodes: []
+    effect: block
+    magnitude: 1.0
+
+benchmark:
+  max_ticks: 700
+  record_interval: 10
+  reward_shaping: none
+
+generators: {}

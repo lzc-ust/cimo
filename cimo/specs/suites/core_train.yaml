@@ -1,0 +1,6 @@
+# CIMO-Core training suite definition
+suite: CIMO-Core
+split: train
+scenarios:
+  - scenarios/campus_transfer_train_001.yaml
+  - scenarios/crossing_team_train_001.yaml

@@ -1,0 +1,6 @@
+# CIMO-Shift test suite definition
+suite: CIMO-Shift
+split: test
+scenarios:
+  - scenarios/campus_transfer_shift_001.yaml
+  - scenarios/crossing_team_shift_001.yaml

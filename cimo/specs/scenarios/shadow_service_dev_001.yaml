@@ -1,0 +1,112 @@
+meta:
+  spec_version: "1.0"
+  scenario_id: "shadow_service_dev_001"
+  suite: "CIMO-Pref"
+  motif: "ShadowService"
+  split: "dev"
+  seed: 901
+
+imports:
+  - ../catalogs/units.yaml
+  - ../catalogs/objects.yaml
+  - ../catalogs/terrains.yaml
+  - ../catalogs/transitions.yaml
+  - ../catalogs/team_modes.yaml
+  - ../catalogs/target_profiles.yaml
+
+catalogs: {}
+
+# -----------------------------------------------------------------------
+# ShadowService dev:
+#   A critical service (power relay) is degraded and needs repair.
+#   service_manipulator must navigate to the site, carry component_module,
+#   and restore service (repair action on service target).
+#
+#   [depot] --road_lane--> [plaza] --indoor_corridor--> [relay_room]
+#
+#   Mission: restore_service on tgt_relay within deadline.
+# -----------------------------------------------------------------------
+world:
+  nodes:
+    - node_id: "depot"
+      label: "Equipment Depot"
+      environment_class: outdoor
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: true
+
+    - node_id: "plaza"
+      label: "Service Plaza"
+      environment_class: outdoor
+      x: 25.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "relay_room"
+      label: "Relay Equipment Room"
+      environment_class: indoor
+      x: 45.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+  edges:
+    - edge_id: "e_depot_plaza"
+      source: "depot"
+      target: "plaza"
+      terrain_type: road_lane
+      distance: 25.0
+      bidirectional: true
+
+    - edge_id: "e_plaza_relay"
+      source: "plaza"
+      target: "relay_room"
+      terrain_type: indoor_corridor
+      distance: 20.0
+      transition_type: doorway
+      bidirectional: true
+
+initial_state:
+  units:
+    - unit_id: "manipulator_01"
+      unit_type: service_manipulator
+      location: "depot"
+
+  objects:
+    - object_id: "component_01"
+      object_type: component_module
+      location: "depot"
+
+  targets:
+    - target_id: "tgt_relay"
+      target_type: service
+      location: "relay_room"
+      metadata:
+        description: "Degraded power relay service target"
+        required_progress: 1.0
+
+workload:
+  missions:
+    - mission_id: "m_restore_relay"
+      family: restore_service
+      priority: high
+      release_tick: 0
+      deadline_tick: 400
+      connectivity_requirement: none
+      risk_budget: 5.0
+      assigned_units:
+        - "manipulator_01"
+      params:
+        target_id: "tgt_relay"
+        object_id: "component_01"
+
+disturbances: []
+
+benchmark:
+  max_ticks: 500
+  record_interval: 10
+  reward_shaping: none
+
+generators: {}

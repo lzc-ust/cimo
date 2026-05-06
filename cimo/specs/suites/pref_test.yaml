@@ -1,0 +1,6 @@
+# CIMO-Pref test suite definition
+suite: CIMO-Pref
+split: test
+scenarios:
+  - scenarios/shadow_service_test_001.yaml
+  - scenarios/maintain_coverage_test_001.yaml

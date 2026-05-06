@@ -1,0 +1,6 @@
+# CIMO-Dyn dev suite definition
+suite: CIMO-Dyn
+split: dev
+scenarios:
+  - scenarios/access_incident_dev_001.yaml
+  - scenarios/recovery_run_dev_001.yaml

@@ -1,0 +1,146 @@
+meta:
+  spec_version: "1.0"
+  scenario_id: "maintain_coverage_dev_001"
+  suite: "CIMO-Pref"
+  motif: "ShadowService"
+  split: "dev"
+  seed: 951
+
+imports:
+  - ../catalogs/units.yaml
+  - ../catalogs/objects.yaml
+  - ../catalogs/terrains.yaml
+  - ../catalogs/transitions.yaml
+  - ../catalogs/team_modes.yaml
+  - ../catalogs/target_profiles.yaml
+
+catalogs: {}
+
+# -----------------------------------------------------------------------
+# MaintainCoverage dev:
+#   Two mobile_relay units must position themselves to maintain
+#   communication coverage over three coverage targets simultaneously.
+#   They may need to move and deploy relays.
+#
+#   [hub] --road_lane--> [node_a]   (coverage target alpha)
+#   [hub] --road_lane--> [node_b]   (coverage target beta)
+#   [hub] --road_lane--> [node_c]   (coverage target gamma)
+# -----------------------------------------------------------------------
+world:
+  nodes:
+    - node_id: "hub"
+      label: "Communication Hub"
+      environment_class: outdoor
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: true
+
+    - node_id: "node_a"
+      label: "Coverage Zone Alpha"
+      environment_class: outdoor
+      x: 20.0
+      y: 15.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "node_b"
+      label: "Coverage Zone Beta"
+      environment_class: outdoor
+      x: 20.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "node_c"
+      label: "Coverage Zone Gamma"
+      environment_class: outdoor
+      x: 20.0
+      y: -15.0
+      z: 0.0
+      is_recharge_point: false
+
+  edges:
+    - edge_id: "e_hub_a"
+      source: "hub"
+      target: "node_a"
+      terrain_type: road_lane
+      distance: 25.0
+      bidirectional: true
+
+    - edge_id: "e_hub_b"
+      source: "hub"
+      target: "node_b"
+      terrain_type: road_lane
+      distance: 20.0
+      bidirectional: true
+
+    - edge_id: "e_hub_c"
+      source: "hub"
+      target: "node_c"
+      terrain_type: road_lane
+      distance: 25.0
+      bidirectional: true
+
+initial_state:
+  units:
+    - unit_id: "relay_01"
+      unit_type: mobile_relay
+      location: "hub"
+
+    - unit_id: "relay_02"
+      unit_type: mobile_relay
+      location: "hub"
+
+  objects: []
+
+  targets:
+    - target_id: "tgt_cov_alpha"
+      target_type: coverage
+      location: "node_a"
+      metadata:
+        description: "Coverage zone alpha"
+        coverage_mode: communication
+
+    - target_id: "tgt_cov_beta"
+      target_type: coverage
+      location: "node_b"
+      metadata:
+        description: "Coverage zone beta"
+        coverage_mode: communication
+
+    - target_id: "tgt_cov_gamma"
+      target_type: coverage
+      location: "node_c"
+      metadata:
+        description: "Coverage zone gamma"
+        coverage_mode: communication
+
+workload:
+  missions:
+    - mission_id: "m_coverage"
+      family: maintain_coverage
+      priority: high
+      release_tick: 0
+      deadline_tick: null
+      connectivity_requirement: continuous
+      risk_budget: 10.0
+      assigned_units:
+        - "relay_01"
+        - "relay_02"
+      params:
+        coverage_mode: communication
+        target_ids:
+          - "tgt_cov_alpha"
+          - "tgt_cov_beta"
+          - "tgt_cov_gamma"
+        min_fraction: 0.8
+
+disturbances: []
+
+benchmark:
+  max_ticks: 600
+  record_interval: 10
+  reward_shaping: none
+
+generators: {}

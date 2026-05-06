@@ -1,0 +1,164 @@
+meta:
+  spec_version: "1.0"
+  scenario_id: "recovery_run_test_001"
+  suite: "CIMO-Dyn"
+  motif: "RecoveryRun"
+  split: "test"
+  seed: 801
+
+imports:
+  - ../catalogs/units.yaml
+  - ../catalogs/objects.yaml
+  - ../catalogs/terrains.yaml
+  - ../catalogs/transitions.yaml
+  - ../catalogs/team_modes.yaml
+  - ../catalogs/target_profiles.yaml
+
+catalogs: {}
+
+# -----------------------------------------------------------------------
+# RecoveryRun test:
+#   Two rovers stranded at different locations with near-zero energy.
+#   One heavy_tugger must recover both sequentially.
+#   Tighter deadline, longer distances.
+#
+#   [base] --road_lane--> [crossroad_a] --open_yard--> [field_a]
+#                               |
+#                          road_lane
+#                               |
+#                         [crossroad_b] --open_yard--> [field_b]
+# -----------------------------------------------------------------------
+world:
+  nodes:
+    - node_id: "base"
+      label: "Recovery Base"
+      environment_class: outdoor
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: true
+
+    - node_id: "crossroad_a"
+      label: "Crossroad A"
+      environment_class: outdoor
+      x: 30.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "crossroad_b"
+      label: "Crossroad B"
+      environment_class: outdoor
+      x: 30.0
+      y: -30.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "field_a"
+      label: "Field Site A"
+      environment_class: outdoor
+      x: 60.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "field_b"
+      label: "Field Site B"
+      environment_class: outdoor
+      x: 60.0
+      y: -30.0
+      z: 0.0
+      is_recharge_point: false
+
+  edges:
+    - edge_id: "e_base_cross_a"
+      source: "base"
+      target: "crossroad_a"
+      terrain_type: road_lane
+      distance: 30.0
+      bidirectional: true
+
+    - edge_id: "e_cross_a_field_a"
+      source: "crossroad_a"
+      target: "field_a"
+      terrain_type: open_yard
+      distance: 30.0
+      bidirectional: true
+
+    - edge_id: "e_cross_a_cross_b"
+      source: "crossroad_a"
+      target: "crossroad_b"
+      terrain_type: road_lane
+      distance: 30.0
+      bidirectional: true
+
+    - edge_id: "e_cross_b_field_b"
+      source: "crossroad_b"
+      target: "field_b"
+      terrain_type: open_yard
+      distance: 30.0
+      bidirectional: true
+
+initial_state:
+  units:
+    - unit_id: "tugger_01"
+      unit_type: heavy_tugger
+      location: "base"
+
+    - unit_id: "rover_01"
+      unit_type: inspection_rover
+      location: "field_a"
+      energy: 5.0
+
+    - unit_id: "rover_02"
+      unit_type: inspection_rover
+      location: "field_b"
+      energy: 5.0
+
+  objects: []
+
+  targets: []
+
+workload:
+  missions:
+    - mission_id: "m_recover_rover_01"
+      family: recover_unit
+      priority: high
+      release_tick: 0
+      deadline_tick: 600
+      connectivity_requirement: none
+      risk_budget: 6.0
+      assigned_units:
+        - "tugger_01"
+        - "rover_01"
+      params:
+        unit_id: "rover_01"
+        destination_node: "base"
+        team_mode: tow
+
+    - mission_id: "m_recover_rover_02"
+      family: recover_unit
+      priority: high
+      release_tick: 0
+      deadline_tick: 800
+      connectivity_requirement: none
+      risk_budget: 6.0
+      assigned_units:
+        - "tugger_01"
+        - "rover_02"
+      dependencies:
+        - type: finish_before_start
+          from: "m_recover_rover_01"
+      params:
+        unit_id: "rover_02"
+        destination_node: "base"
+        team_mode: tow
+
+disturbances: []
+
+benchmark:
+  max_ticks: 900
+  record_interval: 10
+  reward_shaping: none
+
+generators: {}

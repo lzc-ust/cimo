@@ -1,0 +1,167 @@
+meta:
+  spec_version: "1.0"
+  scenario_id: "campus_transfer_train_001"
+  suite: "CIMO-Core"
+  motif: "CampusTransfer"
+  split: "train"
+  seed: 42
+
+imports:
+  - ../catalogs/units.yaml
+  - ../catalogs/objects.yaml
+  - ../catalogs/terrains.yaml
+  - ../catalogs/transitions.yaml
+  - ../catalogs/team_modes.yaml
+  - ../catalogs/target_profiles.yaml
+
+catalogs: {}
+
+# -----------------------------------------------------------------------
+# World graph
+#
+#   [depot] --road_lane--> [plaza] --indoor_corridor--> [hallway]
+#                                                           |
+#                                                     room_access
+#                                                           |
+#                                                      [lab_room]  <-- destination
+#
+#   [depot] also connects to [rooftop] via air_route (aerial_scout only)
+# -----------------------------------------------------------------------
+world:
+  nodes:
+    - node_id: "depot"
+      label: "Supply Depot"
+      environment_class: outdoor
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: true
+
+    - node_id: "plaza"
+      label: "Central Plaza"
+      environment_class: outdoor
+      x: 20.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "hallway"
+      label: "Building Hallway"
+      environment_class: indoor
+      x: 35.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "lab_room"
+      label: "Laboratory Room"
+      environment_class: indoor
+      x: 35.0
+      y: 10.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "rooftop"
+      label: "Building Rooftop"
+      environment_class: airspace
+      x: 35.0
+      y: 0.0
+      z: 15.0
+      is_recharge_point: true
+
+  edges:
+    - edge_id: "e_depot_plaza"
+      source: "depot"
+      target: "plaza"
+      terrain_type: road_lane
+      distance: 20.0
+      bidirectional: true
+
+    - edge_id: "e_plaza_hallway"
+      source: "plaza"
+      target: "hallway"
+      terrain_type: indoor_corridor
+      distance: 15.0
+      transition_type: doorway
+      bidirectional: true
+
+    - edge_id: "e_hallway_lab"
+      source: "hallway"
+      target: "lab_room"
+      terrain_type: room_access
+      distance: 10.0
+      transition_type: doorway
+      bidirectional: true
+
+    - edge_id: "e_depot_rooftop"
+      source: "depot"
+      target: "rooftop"
+      terrain_type: air_route
+      distance: 25.0
+      bidirectional: true
+
+    - edge_id: "e_rooftop_hallway"
+      source: "rooftop"
+      target: "hallway"
+      terrain_type: air_route
+      distance: 15.0
+      bidirectional: false
+
+initial_state:
+  units:
+    - unit_id: "courier_01"
+      unit_type: ground_courier
+      location: "depot"
+
+    - unit_id: "scout_01"
+      unit_type: aerial_scout
+      location: "depot"
+
+  objects:
+    - object_id: "pkg_01"
+      object_type: cargo_item
+      location: "depot"
+
+  targets:
+    - target_id: "tgt_lab"
+      target_type: assessment
+      location: "lab_room"
+      metadata:
+        description: "Lab room delivery target"
+
+workload:
+  missions:
+    - mission_id: "m_transfer"
+      family: relocate_object
+      priority: high
+      release_tick: 0
+      deadline_tick: 400
+      connectivity_requirement: none
+      risk_budget: 5.0
+      assigned_units:
+        - "courier_01"
+      params:
+        object_id: "pkg_01"
+        destination_node: "lab_room"
+
+    - mission_id: "m_scout"
+      family: assess_target
+      priority: medium
+      release_tick: 0
+      deadline_tick: 300
+      connectivity_requirement: none
+      risk_budget: 3.0
+      assigned_units:
+        - "scout_01"
+      params:
+        target_id: "tgt_lab"
+        assessment_mode: inspect
+
+disturbances: []
+
+benchmark:
+  max_ticks: 500
+  record_interval: 10
+  reward_shaping: none
+
+generators: {}

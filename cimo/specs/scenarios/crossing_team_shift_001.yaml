@@ -1,0 +1,149 @@
+meta:
+  spec_version: "1.0"
+  scenario_id: "crossing_team_shift_001"
+  suite: "CIMO-Shift"
+  motif: "CrossingTeam"
+  split: "test"
+  seed: 1301
+
+imports:
+  - ../catalogs/units.yaml
+  - ../catalogs/objects.yaml
+  - ../catalogs/terrains.yaml
+  - ../catalogs/transitions.yaml
+  - ../catalogs/team_modes.yaml
+  - ../catalogs/target_profiles.yaml
+
+catalogs: {}
+
+# -----------------------------------------------------------------------
+# CrossingTeam shift: Instead of river_gap, uses cave_tunnel requiring
+# mounted_transit (ground_light carries air unit through tunnel).
+# Completely different teaming mode from train (airlift vs mounted_transit).
+#
+#   [surface_west] --road_lane--> [tunnel_entrance]
+#   [tunnel_entrance] --cave_tunnel--> [tunnel_exit]   (gl: pass; air: deny solo)
+#   [tunnel_exit] --road_lane--> [target_base]
+#
+#   aerial_scout can only pass cave_tunnel as passenger (mounted_transit with inspection_rover).
+# -----------------------------------------------------------------------
+world:
+  nodes:
+    - node_id: "surface_west"
+      label: "West Surface"
+      environment_class: outdoor
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: true
+
+    - node_id: "tunnel_entrance"
+      label: "Tunnel Entrance"
+      environment_class: outdoor
+      x: 20.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "tunnel_exit"
+      label: "Tunnel Exit"
+      environment_class: outdoor
+      x: 40.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "target_base"
+      label: "Target Base"
+      environment_class: outdoor
+      x: 60.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+  edges:
+    - edge_id: "e_west_tunnel_in"
+      source: "surface_west"
+      target: "tunnel_entrance"
+      terrain_type: road_lane
+      distance: 20.0
+      bidirectional: true
+
+    - edge_id: "e_tunnel"
+      source: "tunnel_entrance"
+      target: "tunnel_exit"
+      terrain_type: cave_tunnel
+      distance: 20.0
+      transition_type: tunnel_portal
+      bidirectional: true
+
+    - edge_id: "e_tunnel_out_base"
+      source: "tunnel_exit"
+      target: "target_base"
+      terrain_type: road_lane
+      distance: 20.0
+      bidirectional: true
+
+initial_state:
+  units:
+    - unit_id: "rover_01"
+      unit_type: inspection_rover
+      location: "surface_west"
+
+    - unit_id: "scout_01"
+      unit_type: aerial_scout
+      location: "surface_west"
+
+  objects:
+    - object_id: "toolkit_01"
+      object_type: toolkit
+      location: "surface_west"
+
+  targets:
+    - target_id: "tgt_base"
+      target_type: assessment
+      location: "target_base"
+      metadata:
+        description: "Target base assessment"
+
+workload:
+  missions:
+    - mission_id: "m_relocate_scout"
+      family: relocate_unit
+      priority: high
+      release_tick: 0
+      deadline_tick: 500
+      connectivity_requirement: none
+      risk_budget: 6.0
+      assigned_units:
+        - "rover_01"
+        - "scout_01"
+      params:
+        unit_id: "scout_01"
+        destination_node: "target_base"
+        team_mode: mounted_transit
+
+    - mission_id: "m_inspect_base"
+      family: assess_target
+      priority: medium
+      release_tick: 0
+      deadline_tick: 600
+      connectivity_requirement: none
+      risk_budget: 3.0
+      assigned_units:
+        - "scout_01"
+      dependencies:
+        - type: finish_before_start
+          from: "m_relocate_scout"
+      params:
+        target_id: "tgt_base"
+        assessment_mode: inspect
+
+disturbances: []
+
+benchmark:
+  max_ticks: 700
+  record_interval: 10
+  reward_shaping: none
+
+generators: {}

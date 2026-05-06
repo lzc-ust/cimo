@@ -1,0 +1,168 @@
+meta:
+  spec_version: "1.0"
+  scenario_id: "campus_transfer_shift_001"
+  suite: "CIMO-Shift"
+  motif: "CampusTransfer"
+  split: "test"
+  seed: 1201
+
+imports:
+  - ../catalogs/units.yaml
+  - ../catalogs/objects.yaml
+  - ../catalogs/terrains.yaml
+  - ../catalogs/transitions.yaml
+  - ../catalogs/team_modes.yaml
+  - ../catalogs/target_profiles.yaml
+
+catalogs: {}
+
+# -----------------------------------------------------------------------
+# CampusTransfer shift: completely different topology from train.
+# Train had road->corridor->room.
+# Shift has: underground cave_tunnel + stairs_ramp + air_route shortcut.
+# Tests whether learned policy generalizes to unseen terrain combinations.
+#
+#   [surface_base] --cave_tunnel--> [underground_hub]
+#   [underground_hub] --stairs_ramp--> [mezzanine]
+#   [mezzanine] --room_access--> [target_room]
+#   [surface_base] --air_route--> [rooftop] --air_route--> [mezzanine]  (air only)
+# -----------------------------------------------------------------------
+world:
+  nodes:
+    - node_id: "surface_base"
+      label: "Surface Base"
+      environment_class: outdoor
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: true
+
+    - node_id: "underground_hub"
+      label: "Underground Hub"
+      environment_class: subterranean
+      x: 20.0
+      y: 0.0
+      z: -5.0
+      is_recharge_point: false
+
+    - node_id: "mezzanine"
+      label: "Mezzanine Level"
+      environment_class: interface
+      x: 20.0
+      y: 0.0
+      z: 5.0
+      is_recharge_point: false
+
+    - node_id: "target_room"
+      label: "Target Room"
+      environment_class: indoor
+      x: 35.0
+      y: 0.0
+      z: 5.0
+      is_recharge_point: false
+
+    - node_id: "rooftop"
+      label: "Rooftop"
+      environment_class: airspace
+      x: 10.0
+      y: 0.0
+      z: 15.0
+      is_recharge_point: true
+
+  edges:
+    - edge_id: "e_surface_tunnel"
+      source: "surface_base"
+      target: "underground_hub"
+      terrain_type: cave_tunnel
+      distance: 22.0
+      transition_type: tunnel_portal
+      bidirectional: true
+
+    - edge_id: "e_underground_stairs"
+      source: "underground_hub"
+      target: "mezzanine"
+      terrain_type: stairs_ramp
+      distance: 12.0
+      transition_type: shaft_or_vertical_link
+      bidirectional: true
+
+    - edge_id: "e_mezzanine_room"
+      source: "mezzanine"
+      target: "target_room"
+      terrain_type: room_access
+      distance: 15.0
+      transition_type: doorway
+      bidirectional: true
+
+    - edge_id: "e_surface_rooftop"
+      source: "surface_base"
+      target: "rooftop"
+      terrain_type: air_route
+      distance: 18.0
+      bidirectional: true
+
+    - edge_id: "e_rooftop_mezzanine"
+      source: "rooftop"
+      target: "mezzanine"
+      terrain_type: air_route
+      distance: 14.0
+      bidirectional: false
+
+initial_state:
+  units:
+    - unit_id: "courier_01"
+      unit_type: ground_courier
+      location: "surface_base"
+
+    - unit_id: "scout_01"
+      unit_type: aerial_scout
+      location: "surface_base"
+
+  objects:
+    - object_id: "pkg_01"
+      object_type: cargo_item
+      location: "surface_base"
+
+  targets:
+    - target_id: "tgt_room"
+      target_type: assessment
+      location: "target_room"
+      metadata:
+        description: "Shift scenario target room"
+
+workload:
+  missions:
+    - mission_id: "m_transfer"
+      family: relocate_object
+      priority: high
+      release_tick: 0
+      deadline_tick: 500
+      connectivity_requirement: none
+      risk_budget: 8.0
+      assigned_units:
+        - "courier_01"
+      params:
+        object_id: "pkg_01"
+        destination_node: "target_room"
+
+    - mission_id: "m_scout"
+      family: assess_target
+      priority: medium
+      release_tick: 0
+      deadline_tick: 350
+      connectivity_requirement: none
+      risk_budget: 3.0
+      assigned_units:
+        - "scout_01"
+      params:
+        target_id: "tgt_room"
+        assessment_mode: inspect
+
+disturbances: []
+
+benchmark:
+  max_ticks: 600
+  record_interval: 10
+  reward_shaping: none
+
+generators: {}

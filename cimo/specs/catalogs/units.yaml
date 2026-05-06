@@ -1,0 +1,275 @@
+unit_types:
+  aerial_scout:
+    role_tags: [scout, verifier]
+    mobility_class: air
+    size_class: small
+    mass: 2.0
+    speed_by_terrain:
+      open_yard: 5.0
+      road_lane: 5.0
+      river_gap: 6.0
+      air_route: 6.0
+    payload:
+      mass_capacity: 1.0
+      volume_capacity: 1.0
+      allowed_payload_tags: [small_item]
+    energy:
+      capacity: 120.0
+      recharge_rate: 6.0
+      idle_cost_per_tick: 0.05
+      move_cost_per_distance:
+        open_yard: 0.20
+        road_lane: 0.20
+        river_gap: 0.25
+        air_route: 0.25
+      action_costs:
+        inspect: 1.0
+        monitor: 0.5
+        attach: 0.5
+        detach: 0.5
+    sensing:
+      range: 18.0
+      durations: {inspect: 3, verify: 4, diagnose: 5}
+      base_quality: 1.0
+    communication:
+      range: 16.0
+      relay_capable: false
+      relay_bonus: 0.0
+    capabilities: [traverse, wait, inspect, monitor, attach, detach, recharge]
+    peer_transport:
+      can_host_modes: [airlift]
+      can_be_passenger_modes: [mounted_transit]
+      passenger_mass_capacity: 8.0
+      passenger_size_limit: medium
+
+  inspection_rover:
+    role_tags: [inspection, escort]
+    mobility_class: ground_light
+    size_class: medium
+    mass: 8.0
+    speed_by_terrain:
+      open_yard: 2.5
+      road_lane: 3.0
+      indoor_corridor: 2.0
+      room_access: 1.8
+      cave_tunnel: 2.0
+      stairs_ramp: 1.4
+      rubble_passage: 1.2
+    payload:
+      mass_capacity: 2.0
+      volume_capacity: 2.0
+      allowed_payload_tags: [small_item]
+    energy:
+      capacity: 160.0
+      recharge_rate: 8.0
+      idle_cost_per_tick: 0.05
+      move_cost_per_distance:
+        open_yard: 0.35
+        road_lane: 0.30
+        indoor_corridor: 0.35
+        room_access: 0.40
+        cave_tunnel: 0.45
+        stairs_ramp: 0.55
+        rubble_passage: 0.60
+      action_costs:
+        inspect: 1.2
+        monitor: 0.7
+        attach: 0.4
+        detach: 0.4
+    sensing:
+      range: 10.0
+      durations: {inspect: 4, verify: 5, diagnose: 6}
+      base_quality: 0.8
+    communication:
+      range: 10.0
+      relay_capable: false
+      relay_bonus: 0.0
+    capabilities: [traverse, wait, inspect, monitor, attach, detach, recharge]
+    peer_transport:
+      can_host_modes: [mounted_transit]
+      can_be_passenger_modes: [airlift, tow]
+      passenger_mass_capacity: 3.0
+      passenger_size_limit: small
+
+  ground_courier:
+    role_tags: [courier, transport]
+    mobility_class: ground_light
+    size_class: medium
+    mass: 12.0
+    speed_by_terrain:
+      open_yard: 3.0
+      road_lane: 3.5
+      indoor_corridor: 2.5
+      room_access: 2.0
+      cave_tunnel: 2.2
+      stairs_ramp: 1.5
+      rubble_passage: 0.8
+    payload:
+      mass_capacity: 20.0
+      volume_capacity: 10.0
+      allowed_payload_tags: [cargo, tool, component]
+    energy:
+      capacity: 200.0
+      recharge_rate: 10.0
+      idle_cost_per_tick: 0.08
+      move_cost_per_distance:
+        open_yard: 0.40
+        road_lane: 0.35
+        indoor_corridor: 0.45
+        room_access: 0.50
+        cave_tunnel: 0.55
+        stairs_ramp: 0.65
+        rubble_passage: 0.80
+      action_costs:
+        pick: 0.5
+        drop: 0.5
+    sensing:
+      range: 4.0
+      durations: {inspect: 6, verify: 7, diagnose: 8}
+      base_quality: 0.4
+    communication:
+      range: 8.0
+      relay_capable: false
+      relay_bonus: 0.0
+    capabilities: [traverse, wait, pick, drop, recharge]
+    peer_transport:
+      can_host_modes: []
+      can_be_passenger_modes: [tow]
+      passenger_mass_capacity: 0.0
+      passenger_size_limit: small
+
+  heavy_tugger:
+    role_tags: [heavy_transport, recovery]
+    mobility_class: ground_heavy
+    size_class: large
+    mass: 25.0
+    speed_by_terrain:
+      open_yard: 2.0
+      road_lane: 2.5
+    payload:
+      mass_capacity: 60.0
+      volume_capacity: 30.0
+      allowed_payload_tags: [cargo, tool, component]
+    energy:
+      capacity: 260.0
+      recharge_rate: 12.0
+      idle_cost_per_tick: 0.10
+      move_cost_per_distance:
+        open_yard: 0.60
+        road_lane: 0.50
+      action_costs:
+        attach: 0.8
+        detach: 0.8
+    sensing:
+      range: 3.0
+      durations: {inspect: 8, verify: 9, diagnose: 10}
+      base_quality: 0.2
+    communication:
+      range: 8.0
+      relay_capable: false
+      relay_bonus: 0.0
+    capabilities: [traverse, wait, pick, drop, attach, detach, recharge]
+    peer_transport:
+      can_host_modes: [tow]
+      can_be_passenger_modes: []
+      passenger_mass_capacity: 30.0
+      passenger_size_limit: medium
+
+  service_manipulator:
+    role_tags: [repair, clearance]
+    mobility_class: ground_light
+    size_class: medium
+    mass: 14.0
+    speed_by_terrain:
+      open_yard: 2.2
+      road_lane: 2.4
+      indoor_corridor: 1.8
+      room_access: 1.6
+      cave_tunnel: 1.8
+      stairs_ramp: 1.2
+      rubble_passage: 1.0
+    payload:
+      mass_capacity: 8.0
+      volume_capacity: 5.0
+      allowed_payload_tags: [tool, component]
+    energy:
+      capacity: 220.0
+      recharge_rate: 10.0
+      idle_cost_per_tick: 0.08
+      move_cost_per_distance:
+        open_yard: 0.45
+        road_lane: 0.40
+        indoor_corridor: 0.50
+        room_access: 0.55
+        cave_tunnel: 0.60
+        stairs_ramp: 0.70
+        rubble_passage: 0.85
+      action_costs:
+        repair: 1.5
+        clear_blockage: 1.5
+        pick: 0.5
+        drop: 0.5
+    sensing:
+      range: 5.0
+      durations: {inspect: 5, verify: 6, diagnose: 6}
+      base_quality: 0.5
+    communication:
+      range: 8.0
+      relay_capable: false
+      relay_bonus: 0.0
+    capabilities: [traverse, wait, pick, drop, repair, clear_blockage, recharge]
+    capability_rates:
+      repair: 1.0
+      clear_blockage: 1.0
+    peer_transport:
+      can_host_modes: []
+      can_be_passenger_modes: [airlift, tow]
+      passenger_mass_capacity: 0.0
+      passenger_size_limit: small
+
+  mobile_relay:
+    role_tags: [relay, communication]
+    mobility_class: ground_light
+    size_class: medium
+    mass: 10.0
+    speed_by_terrain:
+      open_yard: 2.2
+      road_lane: 2.5
+      indoor_corridor: 1.8
+      room_access: 1.6
+      cave_tunnel: 1.6
+      stairs_ramp: 1.1
+      rubble_passage: 0.9
+    payload:
+      mass_capacity: 2.0
+      volume_capacity: 2.0
+      allowed_payload_tags: [small_item]
+    energy:
+      capacity: 240.0
+      recharge_rate: 10.0
+      idle_cost_per_tick: 0.05
+      move_cost_per_distance:
+        open_yard: 0.30
+        road_lane: 0.28
+        indoor_corridor: 0.35
+        room_access: 0.38
+        cave_tunnel: 0.45
+        stairs_ramp: 0.55
+        rubble_passage: 0.70
+      action_costs:
+        deploy_relay: 0.8
+        monitor: 0.4
+    sensing:
+      range: 6.0
+      durations: {inspect: 6, verify: 7, diagnose: 8}
+      base_quality: 0.4
+    communication:
+      range: 18.0
+      relay_capable: true
+      relay_bonus: 1.5
+    capabilities: [traverse, wait, deploy_relay, monitor, recharge]
+    peer_transport:
+      can_host_modes: []
+      can_be_passenger_modes: [tow]
+      passenger_mass_capacity: 0.0
+      passenger_size_limit: small

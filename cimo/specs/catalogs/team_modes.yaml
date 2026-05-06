@@ -1,0 +1,38 @@
+team_modes:
+  independent:
+    actor_required: false
+    passenger_required: false
+    speed_multiplier: 1.0
+    energy_multiplier: 1.0
+    active_capabilities: actor_only
+    detach_requires_node: true
+
+  airlift:
+    actor_required: true
+    passenger_required: true
+    actor_mobility_class: air
+    passenger_mobility_class: ground_light
+    speed_multiplier: 0.70
+    energy_multiplier: 1.50
+    active_capabilities: actor_only
+    detach_requires_node: true
+
+  mounted_transit:
+    actor_required: true
+    passenger_required: true
+    actor_mobility_class: ground_light
+    passenger_mobility_class: air
+    speed_multiplier: 0.80
+    energy_multiplier: 1.20
+    active_capabilities: actor_only
+    detach_requires_node: true
+
+  tow:
+    actor_required: true
+    passenger_required: true
+    actor_mobility_class: ground_heavy
+    passenger_mobility_class: ground_light
+    speed_multiplier: 0.60
+    energy_multiplier: 1.60
+    active_capabilities: actor_only
+    detach_requires_node: true

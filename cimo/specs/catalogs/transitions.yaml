@@ -1,0 +1,18 @@
+transition_types:
+  doorway:
+    connects: [outdoor, indoor]
+
+  gate:
+    connects: [outdoor, outdoor]
+
+  bridge:
+    connects: [outdoor, outdoor]
+
+  tunnel_portal:
+    connects: [outdoor, subterranean]
+
+  loading_dock:
+    connects: [outdoor, indoor]
+
+  shaft_or_vertical_link:
+    connects: [indoor, airspace]

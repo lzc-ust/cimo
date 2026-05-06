@@ -1,0 +1,30 @@
+object_types:
+  cargo_item:
+    class: cargo
+    mass: 5.0
+    volume: 3.0
+    handling_tags: [cargo]
+    pickable: true
+    droppable: true
+    installable: false
+    consumable: false
+
+  toolkit:
+    class: tool
+    mass: 8.0
+    volume: 4.0
+    handling_tags: [tool, repair_resource]
+    pickable: true
+    droppable: true
+    installable: false
+    consumable: false
+
+  component_module:
+    class: component
+    mass: 3.0
+    volume: 2.0
+    handling_tags: [component, small_item]
+    pickable: true
+    droppable: true
+    installable: true
+    consumable: false

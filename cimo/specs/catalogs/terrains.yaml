@@ -1,0 +1,84 @@
+terrain_types:
+  open_yard:
+    environment_class: outdoor
+    solo_access: {air: pass, ground_light: pass, ground_heavy: pass}
+    joint_access: []
+    default_visibility_factor: 1.0
+    default_comm_factor: 1.0
+    default_risk_rate: 0.10
+
+  road_lane:
+    environment_class: outdoor
+    solo_access: {air: pass, ground_light: pass, ground_heavy: pass}
+    joint_access: []
+    default_visibility_factor: 1.0
+    default_comm_factor: 1.0
+    default_risk_rate: 0.08
+
+  indoor_corridor:
+    environment_class: indoor
+    solo_access: {air: deny, ground_light: pass, ground_heavy: deny}
+    joint_access: []
+    default_visibility_factor: 0.8
+    default_comm_factor: 0.7
+    default_risk_rate: 0.12
+
+  room_access:
+    environment_class: indoor
+    solo_access: {air: deny, ground_light: pass, ground_heavy: deny}
+    joint_access: []
+    default_visibility_factor: 0.9
+    default_comm_factor: 0.8
+    default_risk_rate: 0.10
+
+  river_gap:
+    environment_class: outdoor
+    solo_access: {air: pass, ground_light: deny, ground_heavy: deny}
+    joint_access:
+      - mode: airlift
+        actor_class: air
+        passenger_class: ground_light
+        pass: true
+    default_visibility_factor: 1.0
+    default_comm_factor: 1.0
+    default_risk_rate: 0.30
+
+  cave_tunnel:
+    environment_class: subterranean
+    solo_access: {air: deny, ground_light: pass, ground_heavy: deny}
+    joint_access:
+      - mode: mounted_transit
+        actor_class: ground_light
+        passenger_class: air
+        pass: true
+    default_visibility_factor: 0.5
+    default_comm_factor: 0.4
+    default_risk_rate: 0.25
+
+  stairs_ramp:
+    environment_class: interface
+    solo_access: {air: deny, ground_light: pass, ground_heavy: deny}
+    joint_access: []
+    default_visibility_factor: 0.8
+    default_comm_factor: 0.6
+    default_risk_rate: 0.18
+
+  rubble_passage:
+    environment_class: interface
+    solo_access: {air: deny, ground_light: pass, ground_heavy: deny}
+    joint_access: []
+    default_visibility_factor: 0.6
+    default_comm_factor: 0.5
+    default_risk_rate: 0.35
+
+  air_route:
+    environment_class: airspace
+    solo_access: {air: pass, ground_light: deny, ground_heavy: deny}
+    joint_access:
+      - mode: airlift
+        actor_class: air
+        passenger_class: ground_light
+        pass: true
+    default_visibility_factor: 1.0
+    default_comm_factor: 1.0
+    default_risk_rate: 0.12

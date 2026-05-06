@@ -1,0 +1,155 @@
+meta:
+  spec_version: "1.0"
+  scenario_id: "shadow_service_test_001"
+  suite: "CIMO-Pref"
+  motif: "ShadowService"
+  split: "test"
+  seed: 1001
+
+imports:
+  - ../catalogs/units.yaml
+  - ../catalogs/objects.yaml
+  - ../catalogs/terrains.yaml
+  - ../catalogs/transitions.yaml
+  - ../catalogs/team_modes.yaml
+  - ../catalogs/target_profiles.yaml
+
+catalogs: {}
+
+# -----------------------------------------------------------------------
+# ShadowService test:
+#   Two service targets need restoration simultaneously.
+#   One manipulator must prioritize and handle both within tighter deadlines.
+#   Path to relay_room_b is initially blocked (disturbance at tick 0-80).
+# -----------------------------------------------------------------------
+world:
+  nodes:
+    - node_id: "depot"
+      label: "Equipment Depot"
+      environment_class: outdoor
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: true
+
+    - node_id: "plaza"
+      label: "Service Plaza"
+      environment_class: outdoor
+      x: 25.0
+      y: 0.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "relay_room_a"
+      label: "Relay Room A"
+      environment_class: indoor
+      x: 45.0
+      y: 10.0
+      z: 0.0
+      is_recharge_point: false
+
+    - node_id: "relay_room_b"
+      label: "Relay Room B"
+      environment_class: indoor
+      x: 45.0
+      y: -10.0
+      z: 0.0
+      is_recharge_point: false
+
+  edges:
+    - edge_id: "e_depot_plaza"
+      source: "depot"
+      target: "plaza"
+      terrain_type: road_lane
+      distance: 25.0
+      bidirectional: true
+
+    - edge_id: "e_plaza_relay_a"
+      source: "plaza"
+      target: "relay_room_a"
+      terrain_type: indoor_corridor
+      distance: 20.0
+      transition_type: doorway
+      bidirectional: true
+
+    - edge_id: "e_plaza_relay_b"
+      source: "plaza"
+      target: "relay_room_b"
+      terrain_type: indoor_corridor
+      distance: 20.0
+      transition_type: doorway
+      bidirectional: true
+
+initial_state:
+  units:
+    - unit_id: "manipulator_01"
+      unit_type: service_manipulator
+      location: "depot"
+
+  objects:
+    - object_id: "component_01"
+      object_type: component_module
+      location: "depot"
+
+    - object_id: "component_02"
+      object_type: component_module
+      location: "depot"
+
+  targets:
+    - target_id: "tgt_relay_a"
+      target_type: service
+      location: "relay_room_a"
+      metadata:
+        description: "Relay A service target"
+
+    - target_id: "tgt_relay_b"
+      target_type: service
+      location: "relay_room_b"
+      metadata:
+        description: "Relay B service target"
+
+workload:
+  missions:
+    - mission_id: "m_restore_relay_a"
+      family: restore_service
+      priority: high
+      release_tick: 0
+      deadline_tick: 300
+      connectivity_requirement: none
+      risk_budget: 5.0
+      assigned_units:
+        - "manipulator_01"
+      params:
+        target_id: "tgt_relay_a"
+        object_id: "component_01"
+
+    - mission_id: "m_restore_relay_b"
+      family: restore_service
+      priority: medium
+      release_tick: 0
+      deadline_tick: 500
+      connectivity_requirement: none
+      risk_budget: 5.0
+      assigned_units:
+        - "manipulator_01"
+      params:
+        target_id: "tgt_relay_b"
+        object_id: "component_02"
+
+disturbances:
+  - disturbance_id: "d_corridor_b_block"
+    trigger_tick: 0
+    resolve_tick: 80
+    affected_edges:
+      - "e_plaza_relay_b"
+      - "e_plaza_relay_b_rev"
+    affected_nodes: []
+    effect: block
+    magnitude: 1.0
+
+benchmark:
+  max_ticks: 600
+  record_interval: 10
+  reward_shaping: none
+
+generators: {}
